@@ -1,0 +1,3 @@
+[submodule "vkl"]
+	path = vkl
+	url = https://github.com/eigenray-software/vkl
