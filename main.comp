@@ -1,0 +1,64 @@
+#version 450
+
+#extension GL_EXT_buffer_reference : enable
+#extension GL_EXT_buffer_reference2 : enable
+#extension GL_ARB_gpu_shader_int64 : enable
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 16) in;
+
+layout (constant_id = 0) const uint BufferSize = 1;
+layout (constant_id = 1) const double BufferSize2 = 1.f;
+
+layout(buffer_reference) buffer What;
+
+layout(binding = 0) buffer readonly PositionBuffer
+{
+    vec3 Laloylam;
+    vec4 Position[BufferSize];
+};
+
+layout(binding = 1) buffer readonly VelocityBuffer
+{
+    vec4 Velocity[BufferSize];
+};
+
+layout(binding = 2) buffer readonly AccelerationBuffer
+{
+    vec4 Acceleration[BufferSize];
+};
+
+layout(binding = 3) buffer readonly MassBuffer
+{
+    float Mass[BufferSize];
+};
+
+layout(binding = 4) buffer writeonly PositionBufferOut
+{
+    vec4 PositionOut[BufferSize];
+};
+
+layout(set = 1, binding = 0, rgba16f) uniform readonly image2DArray SomeImages[BufferSize];
+
+layout(buffer_reference) buffer PointerToFloat { float v; };
+
+layout(push_constant) uniform Registers
+{
+    PointerToFloat references;
+};
+
+void main()
+{
+    // PointerToFloat pointer;
+    uint index = gl_GlobalInvocationID.x;
+    vec3 position = Position[index].xyz;
+    vec3 velocity = Velocity[index].xyz;
+    vec3 acceleration = Acceleration[index].xyz;
+    float mass = Mass[index];
+
+    vec3 force      = acceleration * mass;
+    vec3 newVelocity = velocity + force;
+    vec3 newPosition = position + newVelocity;
+    
+    // imageStore(SomeImages[BufferSize-2], ivec3(0, 0, 0), vec4(newPosition, 1.0));
+    PositionOut[index] = imageLoad(SomeImages[BufferSize-1], ivec3(0, 0, 0)) * vec4(PointerToFloat(uint64_t(references) + 24).v *dot(force, newPosition));
+}

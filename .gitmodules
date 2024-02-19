@@ -1,3 +1,6 @@
 [submodule "vkl"]
 	path = vkl
 	url = https://github.com/eigenray-software/vkl
+[submodule "vk/SPIRV-Cross"]
+	path = vk/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross

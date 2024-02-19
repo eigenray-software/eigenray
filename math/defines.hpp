@@ -29,6 +29,22 @@ using f64 = double;
 namespace er
 {
 
+
+template<size_t N, size_t K>
+constexpr size_t binomial_coefficient()
+{
+    if constexpr (K > N)
+    {
+        abort();
+        return 0;
+    }
+    if constexpr (K == 0 || K == N)
+    {
+        return 1;
+    }
+    else return binomial_coefficient<N - 1, K - 1>() + binomial_coefficient<N - 1, K>();
+}
+
 template<class F, class T>
 concept Binop = std::is_convertible_v<std::invoke_result_t<F, T, T>, T>;
 
@@ -63,6 +79,9 @@ ER_STATIC_CONSTEXPR T sqrt_newton_rhapson(const T& x, const T& curr, const T& pr
 template<int N>
 using sequencer = detail::sequencer_impl<N>;
 
+template<int N, template<int...>class F>
+using sequenced = typename sequencer<N>::template apply<F>;
+
 template<class T>
 ER_STATIC_CONSTEXPR T pi = T(3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651);
 
@@ -73,6 +92,12 @@ template<class T>
 ER_STATIC_CONSTEXPR T sqrt(const T& x)
 {
     return detail::sqrt_newton_rhapson(x, x, T(0));
+}
+
+template<class T>
+ER_STATIC_CONSTEXPR T neg(const T& x)
+{
+	return -x;
 }
 
 template<class T>

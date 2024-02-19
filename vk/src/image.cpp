@@ -15,7 +15,7 @@ Image::Image(Device* device, VkExtent3D extent, VkFormat format, VkImageUsageFla
     VkImageCreateInfo imageInfo = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = 0,
-        .flags = 0,
+        .flags = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT ,
         .imageType = VK_IMAGE_TYPE_2D,
         .format = format,
         .extent = extent,
@@ -27,6 +27,7 @@ Image::Image(Device* device, VkExtent3D extent, VkFormat format, VkImageUsageFla
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
     };
+    
     device->CreateImage(&imageInfo, 0, &handle);
     VkMemoryRequirements memoryRequirements;
     device->GetImageMemoryRequirements(handle, &memoryRequirements);

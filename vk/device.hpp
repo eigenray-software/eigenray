@@ -7,8 +7,12 @@
 #include <set>
 #include <iostream>
 
+
 namespace er
 {
+
+template<class T>
+using rc = std::shared_ptr<T>;
 
 struct Device : VklDeviceFunctions
 {
