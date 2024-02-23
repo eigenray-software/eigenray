@@ -14,6 +14,8 @@
 
 #include <set.hpp>
 #include <complex.hpp>
+#include <polynomial.hpp>
+#include <iomanip>
 
 
 std::random_device rd;
@@ -39,7 +41,7 @@ mat<f32, N, N> random_invertbile_matrix()
     {
         for (int j = 0; j < N; j++)
         {
-            m(i, j) = 5 * dis(gen);
+            m(i, j) =  dis(gen);
         }
 	}
 
@@ -160,6 +162,30 @@ mat<f32, N, N> iterative_convergent_inverse(mat<f32, N, N> m)
     return scaling * inv;
 }
 
+template<class T, int R, int C>
+polynomial<T, R + 2 * C> generate_poly()
+{
+    if constexpr (R == 0 && C == 0)
+    {
+        return polynomial<T, 0>{1};
+	}
+	else if constexpr (R == 0)
+	{
+		f32 a = dis(gen);
+        f32 b = (dis(gen) * 0.25f + 0.5f);
+		auto p = polynomial<f32, 2>{ a * a + b * b, -2 * a, 1 };
+		return p * generate_poly<T, R, C - 1>();
+	}
+	else if constexpr (C == 0)
+	{
+		return polynomial<T, 1>{-dis(gen), 1} *generate_poly<T, R - 1, C>();
+    }
+    else
+    {
+        return generate_poly<T, R, 0>() * generate_poly<T, 0, C>();
+    }
+}
+
 int main()
 {
     srand(time(0));
@@ -167,101 +193,64 @@ int main()
     // std::cout << binomial_coefficient<10, 5>() << "\n";
     // std::cout << binomial_coefficient<11, 7>() << "\n";
     // return 1;
+
+    //complex<f32> c{1, 1};
+    //c = unit(c);
+    //quaternion<f32> q{c, {}};
+    //q = unit(q);
+    //octonion<f32> o{q, {}};
+    //o = unit(o);
+    //std::cout << (o * o) << "\n";
+
+    f64 err_sum    = 0;
+    f32 max_error  = 0;
+    size_t counter = 0;
+    size_t root_counter = 0;
+
+
     while (1)
     {
-        auto m = random_invertbile_matrix<4>();
-        // std::cout << m << "\n";
+        //f32 a = dis(gen);
+        //f32 b = (dis(gen) * 0.25f + 0.5f) * 1024.f;
+        //f32 c = dis(gen);
+        //auto p = polynomial<f32, 2>{ a * a + b * b, -2 * a, 1 } *polynomial<f32, 1>{-c, 1};
+        //if (p(c) != 0.f)
+        //    continue;
 
-  
-        // auto m = random_invertbile_matrix<3>();
-        
-        auto poly = characteristic_polynomial(m);
-        std::cout << poly;
-        std::cout << derivative<f32, 4>(poly);
+        auto p = generate_poly<f32, 2, 1>();
+        //auto m = random_invertbile_matrix<5>();
+        //auto p = characteristic_polynomial(m);
 
-        for (auto& root : solve_polynomial<f32, 4>(poly))
+        ++counter;
+        const int r = 1000000;
+        if (0 == counter % r)
         {
-            std::cout << "\t\t" << root << "\n";
+            std::cout << "Still counting " << (counter/r) << "\n";
         }
-        std::cout << "-------------------\n";
-        // std::cout << determinants_of_principal_minors<5>(m) << "\n";
-        // std::cout << eigenvalues(m);
-        continue;
-        //std::cout << inverse(m);
-        //std::cout << "---------------\n";
-        // std::cout << 
-        // std::cout << m*
-            
-        // auto err = m*iterative_convergent_inverse(m) - m.identity();
-        // std::cout << "\t\tError:" << fold_add(transform<[](auto const& c) { return c * c; }>(err)) << "\n";
+
+        auto roots = solve_roots(p);
+ 
+        if (!roots.empty())
+        {
+            std::cout << p << "\n";
+            for (auto root : roots)
+            {
+                f32 err = abs(p(root)) / std::numeric_limits<f32>::epsilon();
+                std::cout << "#\t\t" << root << " : " << p(root) << "\n";
+                err_sum += err;
+                ++root_counter;
+                if (err > max_error)
+                {
+                    max_error = err;
+                    std::cout << p << "\n";
+                    std::cout << root << "\n";
+                    std::cout << "Max error: " << max_error << "\n";
+                    std::cout << "Average error: " << (err_sum / root_counter) << "\n";
+                }
+            }
+        }
     }
 
-    //{
-    //    // create a random invertible matrix
-
-    //    auto m = random_invertbile_matrix<3>();
-    //    std::cout << m;
-    //    std::cout << "\n\n";
-    //    std::cout << iterative_convergent_inverse(iterative_convergent_inverse(m));
-    //    std::cout << "\n\n";
-    //    std::cout << iterative_convergent_inverse(m);
-    //    std::cout << "\n\n";
-    //    std::cout << (m * iterative_convergent_inverse(m));
-    //    std::cout << "\n\n";
-    //}
-
-    return 1;
-
-    row_vec<f32, 4> v = { 1.f, 2.f, 3.f, 4.f };
-    col_vec<f32, 4> u = { 1.f, 2.f, 3.f, 4.f };
-    row_vec<f32, 5> u2 = { 1.f, 2.f, 3.f, 4.f, 5.f };
-
-    /*   mat<f32, 4, 4> m0 = { v, v, v, v };*/
-    mat<f32, 4, 5> m1 = { u, u, u, u, u };
-    mat<f32, 4, 5> m2 = { u2, u2, u2, u2 };
-
-    std::cout << (u) << "\n";
-    std::cout << (u2) << "\n\n";
-    std::cout << (((u, u, u))) << "\n";
-    std::cout << (((u, u))) << "\n";
-    std::cout << (((u, u, u), (u, u))) << "\n";
-
-    auto w0 = v * u;
-    auto w1 = u * v;
-    std::cout << typeid(v[0]).name() << "\n";
-    std::cout << typeid(u[0]).name() << "\n";
-    std::cout << typeid(v(0, 0)).name() << "\n";
-    std::cout << typeid(u(0, 0)).name() << "\n";
-    std::cout << "\n";
-    std::cout << typeid(v * u).name() << "\n";
-    std::cout << typeid(u * v).name() << "\n";
-    std::cout << "\n";
-    std::cout << typeid(row_vec<f32, 4>).name() << "\n";
-    std::cout << typeid(row_vec<f32, 4>::Row_t).name() << "\n";
-    std::cout << typeid(row_vec<f32, 4>::Col_t).name() << "\n";
-    std::cout << typeid(row_vec<f32, 4>::data).name() << "\n";
-    std::cout << "\n";
-    std::cout << typeid(col_vec<f32, 4>).name() << "\n";
-    std::cout << typeid(col_vec<f32, 4>::Row_t).name() << "\n";
-    std::cout << typeid(col_vec<f32, 4>::Col_t).name() << "\n";
-    std::cout << typeid(col_vec<f32, 4>::data).name() << "\n";
-    std::cout << "\n";
-    std::cout << typeid(mat<f32, 4, 4>).name() << "\n";
-    std::cout << typeid(mat<f32, 4, 4>::Row_t).name() << "\n";
-    std::cout << typeid(mat<f32, 4, 4>::Col_t).name() << "\n";
-    std::cout << typeid(mat<f32, 4, 4>::data).name() << "\n";
-    //std::cout << ((v, v, v, v)) << "\n";
-    //std::cout << ((v * (v, v, v, v))) << "\n";
-    //std::cout << (((v, v, v, v) * v)) << "\n";
-
-    //Instance instance;
-    //auto vk = instance.devices[0];
-
-    //ShaderModule shader(vk, read_binary("a.spv"));
-
-    //Buffer buf(vk, 1024, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-    //
-    //return 0;
 }
 
 

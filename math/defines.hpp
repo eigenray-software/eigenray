@@ -33,16 +33,10 @@ namespace er
 template<size_t N, size_t K>
 constexpr size_t binomial_coefficient()
 {
-    if constexpr (K > N)
-    {
-        abort();
-        return 0;
-    }
-    if constexpr (K == 0 || K == N)
-    {
+    if constexpr (0 == K)
         return 1;
-    }
-    else return binomial_coefficient<N - 1, K - 1>() + binomial_coefficient<N - 1, K>();
+    else 
+        return (binomial_coefficient<N,K-1>()*(N-K+1))/K;
 }
 
 template<class F, class T>
@@ -72,8 +66,9 @@ ER_STATIC_CONSTEXPR T sqrt_newton_rhapson(const T& x, const T& curr, const T& pr
 {
         return curr == prev
             ? curr
-            : sqrt_newton_rhapson(x, 0.5 * (curr + x / curr), curr);
+            : sqrt_newton_rhapson(x, T(0.5 * (curr + x / curr)), curr);
 }
+
 }
 
 template<int N>
@@ -182,6 +177,12 @@ template<class T>
 ER_STATIC_CONSTEXPR T abs(const T& x)
 {
     return x < 0 ? -x : x;
+}
+
+template<class T>
+ER_STATIC_CONSTEXPR int sign(const T& x)
+{
+    return x < T(0) ? -1 : 1;
 }
 
 template<int (*F)(int const&, int const&), int H, int...T>

@@ -1,150 +1,93 @@
 #pragma once
-#include <defines.hpp>
+#include <vec.hpp>
 
 namespace er
 {
 
-template<class T>
-struct Complex
-{
-    T r, i;
-
-    Complex() : r{}, i{} {}
-
-    Complex(T const& r) : r(r), i{} {}
-    Complex(T const& r, T const& i) : r(r), i(i) {}
-    Complex(Complex const& c) = default;
-
-    Complex& operator=(Complex const& c) = default;
-
-    T magsq() const { return r * r + i * i; }
-    Complex operator~() const { return {r, -i}; }
-    friend Complex operator+(Complex const& l, Complex const& r) { return {l.r + r.r, l.i + r.i}; }
-    friend Complex operator-(Complex const& l, Complex const& r) { return {l.r - r.r, l.i - r.i}; }
-    friend Complex operator*(Complex const& l, Complex const& r) { return {l.r * r.r - l.i * r.i, l.r * r.i + l.i * r.r}; }
-    friend Complex operator/(Complex const& l, Complex const& r) { return l * ~r / r.magsq(); }
-    friend Complex operator*(Complex const& l, T const& r) { return {l.r * r, l.i * r}; }
-    friend Complex operator*(T const& l, Complex const& r) { return {l * r.r, l * r.i}; }
-    friend Complex operator/(Complex const& l, T const& r) { return {l.r / r, l.i / r}; }
-    friend Complex operator/(T const& l, Complex const& r) { return l * ~r / r.magsq(); }
-    friend Complex& operator+=(Complex& l, Complex const& c) { return l = l + c; }
-    friend Complex& operator-=(Complex& l, Complex const& c) { return l = l - c; }
-    friend Complex& operator*=(Complex& l, Complex const& c) { return l = l * c; }
-    friend Complex& operator/=(Complex& l, Complex const& c) { return l = l / c; }
-    friend Complex& operator*=(Complex& l, T const& r) { return l = l * r; }
-    friend Complex& operator/=(Complex& l, T const& r) { return l = l / r; }
-    friend bool operator==(Complex const& l, Complex const& r) { return l.r == r.r && l.i == r.i; }
-    friend bool operator!=(Complex const& l, Complex const& r) { return !(l == r); }
-    friend Complex exp(Complex const& c) { return std::exp(c.r) * Complex(std::cos(c.i), std::sin(c.i)); }
-
-    friend std::ostream& operator<<(std::ostream& os, Complex const& c) { return os << c.r << " + " << c.i << "i"; }
-};
+template<class F, int N = 0>
+struct complex;
 
 template<class T>
-struct Quat
-{
-    T r, i, j, k;
-
-    Quat() : r{}, i{}, j{}, k{} {}
-    Quat(T const& r, T const& i, T const& j, T const& k) : r(r), i(i), j(j), k(k) {}
-    Quat(Quat const& q) = default;
-    Quat& operator=(Quat const& q) = default;
-    T magsq() const { return r * r + i * i + j * j + k * k; }
-
-    Quat operator~() const { return {r, -i, -j, -k}; }
-    friend Quat operator+(Quat const& l, Quat const& r) { return {l.r + r.r, l.i + r.i, l.j + r.j, l.k + r.k}; }
-    friend Quat operator-(Quat const& l, Quat const& r) { return {l.r - r.r, l.i - r.i, l.j - r.j, l.k - r.k}; }
-    friend Quat operator*(Quat const& l, Quat const& r) 
-    { 
-        return {
-            l.r * r.r - l.i * r.i - l.j * r.j - l.k * r.k,
-            l.r * r.i + l.i * r.r + l.j * r.k - l.k * r.j,
-            l.r * r.j - l.i * r.k + l.j * r.r + l.k * r.i,
-            l.r * r.k + l.i * r.j - l.j * r.i + l.k * r.r
-        };
-    }
-    friend Quat operator/(Quat const& l, Quat const& r) { return l * ~r / r.magsq(); }
-    friend Quat operator*(Quat const& l, T const& r) { return {l.r * r, l.i * r, l.j * r, l.k * r}; }
-    friend Quat operator*(T const& l, Quat const& r) { return {l * r.r, l * r.i, l * r.j, l * r.k}; }
-    friend Quat operator/(Quat const& l, T const& r) { return {l.r / r, l.i / r, l.j / r, l.k / r}; }
-    friend Quat operator/(T const& l, Quat const& r) { return l * ~r / r.magsq(); }
-    friend Quat& operator+=(Quat& l, Quat const& q) { return l = l + q; }
-    friend Quat& operator-=(Quat& l, Quat const& q) { return l = l - q; }
-    friend Quat& operator*=(Quat& l, Quat const& q) { return l = l * q; }
-    friend Quat& operator/=(Quat& l, Quat const& q) { return l = l / q; }
-    friend Quat& operator*=(Quat& l, T const& r) { return l = l * r; }
-    friend Quat& operator/=(Quat& l, T const& r) { return l = l / r; }
-    friend bool operator==(Quat const& l, Quat const& r) { return l.r == r.r && l.i == r.i && l.j == r.j && l.k == r.k; }
-    friend bool operator!=(Quat const& l, Quat const& r) { return !(l == r); }
-    friend Quat exp(Quat const& q) 
-    { 
-        T theta = std::sqrt(q.i * q.i + q.j * q.j + q.k * q.k);
-        T s = std::sin(theta);
-        T c = std::cos(theta);
-        return {c, s * q.i / theta, s * q.j / theta, s * q.k / theta};
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, Quat const& q) { return os << q.r << " + " << q.i << "i + " << q.j << "j + " << q.k << "k"; }
-};
+ER_STATIC_CONSTEXPR bool is_complex = false;
 
 template<class T, int N>
-row_vec<T, N> derivative(row_vec<T, N> const& poly)
-{
-    row_vec<T, N > result = {};
-    // sorted from highest to lowest power
-    // implicit 1 for x^N which is not present in the array
-    for (int i = 1; i < N; i++)
-		result[i] = poly[i-1] * (N - i);
-    return result;
+ER_STATIC_CONSTEXPR bool is_complex<complex<T, N>> = true;
+
+template<class T>
+T conjugate(T const& c) 
+{ 
+    if constexpr (is_complex<T>) 
+        return ~c; 
+    else 
+        return c;
 }
 
-template<class T, int N>
-Complex<T> eval_polynomial(row_vec<Complex<T>, N> const& poly, Complex<T> x)
+template<class F, int N>
+struct complex
 {
-    Complex<T> result = 0;
-    for (int i = 0; i < N; i++)
-        result = result * x + poly[i];
-    return result;
-}
+    using data_t = std::conditional_t<0 == N, F, complex<F, N - 1>>;
 
-template<class T, int N>
-row_vec<T, N> divide_polynomial_by_root(row_vec<T, N> const& poly, T const& x)
-{
-    row_vec<T, N - 1> result = {};
-	result[N - 2] = poly[N - 1];
-	for (int i = N - 3; i >= 0; i--)
-		result[i] = poly[i + 1] + x * result[i + 1];
-	return (mat<T,1,1>(), result);
-}
-
-template<class T, int N>
-std::vector<Complex<T>> solve_polynomial(row_vec<T, N> const& poly)
-{
-    auto tmp = (mat<T, 1, 1>(1), poly);
-    auto p = transform<[](auto const& c) { return Complex<T>(c); }>(tmp);
-    auto d = derivative<Complex<T>, N + 1>(p);
-    
-    Complex<T> guess = 0;
-    Complex<T> res  = eval_polynomial<T, N + 1>(p, guess);
-    Complex<T> grad = eval_polynomial<T, N + 1>(d, guess);
-
-    std::vector<Complex<T>> roots;
-
-    while(roots.size() < N)
+    union
     {
-		guess -= res / grad;
-        res  = eval_polynomial<T, N + 1>(p, guess);
-        grad = eval_polynomial<T, N + 1>(d, guess);
-        if (res.magsq() < 0.0001)
+        struct
         {
-            roots.push_back(guess);
-            p = divide_polynomial_by_root<Complex<T>, N+1>(p, guess);
-            d = derivative<Complex<T>, N + 1>(p);
-            guess = 0;
-        }
-	}
+            data_t x;
+            data_t y;
+        };
+        row_vec<data_t, 2> data;
+        F raw_data[2<<N];
+        row_vec<F, (2 << N)> raw_vec;
+    };
 
-    return roots;
-}
+    complex(F const& scalar = F(0)) : raw_data{scalar} {}    
+    
+    template<class...Args> 
+        requires(sizeof...(Args) == (2<<N) && (std::is_convertible_v<Args, F> && ...))
+    complex(Args&&...args) : raw_data{ F(std::forward<Args>(args))... } {}
+
+    complex(data_t const& x, data_t const& y) : data(x, y) {}
+
+    friend F magsq(complex const& c) { return fold_add(comp_mul(c.raw_vec, c.raw_vec)); }
+    friend complex unit(complex const& c) { return c / sqrt(magsq(c)); }
+    friend complex inverse(complex const& c) { return ~c / magsq(c); }
+    friend complex operator -(complex const& c) { return {-c.x, -c.y}; }
+    friend complex operator ~(complex const& c) { return {conjugate(c.x), -c.y}; }
+    friend complex operator +(complex const& a, complex const& b) { return {a.data + b.data}; }
+    friend complex operator -(complex const& a, complex const& b) { return {a.data - b.data}; }
+
+    friend complex operator *(complex const& a, complex const& b) { return complex(a.x * b.x - conjugate(b.y) * a.y, b.y * a.x + a.y * conjugate(b.x)); }
+    friend complex operator /(complex const& a, complex const& b) { return a * inverse(b); }
+    friend complex operator *(F const& a, complex const& b) { return {a * b.x, a * b.y}; }
+    friend complex operator *(complex const& a, F const& b) { return {a.x * b, a.y * b}; }
+    friend complex operator /(complex const& a, F const& b) { return {a.x / b, a.y / b}; }
+    friend complex operator /(F const& a, complex const& b) { return a * inverse(b); }
+
+    friend bool operator ==(complex const& a, complex const& b) { return a.data == b.data; }
+    friend bool operator !=(complex const& a, complex const& b) { return a.data != b.data; }
+
+    friend std::ostream& operator <<(std::ostream& os, complex const& c) 
+    { 
+        os << "(" << c.raw_data[0] << ", ";
+        for (int i = 1; i < (2 << N); ++i)
+        {
+			os << c.raw_data[i];
+            if (i < ((2<<N) - 1))
+				os << ", ";
+		}
+        return os << ")";
+    }
+
+private:
+    complex(row_vec<data_t, 2> const& data) : data(data) {}
+};
+
+template<class T>
+using quaternion = complex<T, 1>;
+
+template<class T>
+using octonion = complex<T, 2>;
+
+template<class T>
+using sedonion = complex<T, 3>;
 
 }

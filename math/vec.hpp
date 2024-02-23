@@ -2,177 +2,29 @@
 
 #include <defines.hpp>
 #include <algorithm>
+#include <vector>
 #include <assert.h>
 
 namespace er
 {
 
-// template<class T, int N>
-// struct vec;
-
-// template<class T>
-// struct collapse_vec { using type = T; };
-
-// template<class T> 
-// struct collapse_vec<vec<T, 1>> : collapse_vec<T> {};
-
-// template<class T, int N> 
-// struct collapse_vec<vec<T, N>>
-// {
-//     using type = vec<typename collapse_vec<T>::type, N>;
-// };
-
-// template<class T>
-// using collapse_vec_t = collapse_vec<T>::type;
-
-// template<class T> 
-// struct vec_dim : std::integral_constant<int, 1> { using type = T; };
-
-// template<class T, int N> 
-// struct vec_dim<vec<T,N>> : std::integral_constant<int, N> { using type = T; };
-
-// template<class T> 
-// ER_STATIC_CONSTEXPR int vec_dim_v = vec_dim<T>::value;
-
-// template<class T> 
-// using vec_dim_t = typename vec_dim<T>::type;
-
-// template<class T>
-// ER_STATIC_CONSTEXPR bool is_vec = false;
-
-// template<class T, int N>
-// ER_STATIC_CONSTEXPR bool is_vec<vec<T, N>> = true;
-
-// template<class T, int N>
-// struct vec 
-// {
-//     T data[N];
-
-//     vec() : data{} {}
-
-//     explicit vec(T const& x) 
-//     {
-//         std::fill_n(data, N, x);
-//     }
-
-//     vec(vec const& v) = default;
-    
-//     template<std::convertible_to<T>...Args> requires (sizeof...(Args) == N)
-//     vec(Args&&...args) : data{T(args)...}
-//     {
-//     }
-
-//     using collapsed = collapse_vec_t<vec>;
-    
-//     operator collapsed() const
-//     {
-//         return std::bit_cast<collapsed, vec>(*this);
-//     }
-
-//     operator vec<collapsed, 1>() const requires(std::is_same_v<collapsed, vec>)
-//     {
-//         return std::bit_cast<vec<vec, 1>, vec>(*this);
-//     }
-
-//     operator vec<vec<collapse_vec_t<T>, 1>, N>() const requires(std::is_same_v<collapsed, vec>)
-//     {
-//         return std::bit_cast<vec<vec<T, 1>, N>, vec>(*this);
-//     }
-
-//     template<auto F> requires(!std::is_same_v<std::invoke_result_t<decltype(F), T, T>, void>)
-//     static auto element_wise(vec const& x, vec const& y)
-//     {
-//         vec<std::invoke_result_t<decltype(F), T, T>, N> result;
-//         for (int i = 0; i < N; ++i)
-//             result.data[i] = F(x.data[i], y.data[i]);
-//         return result;
-//     }
-
-//     friend vec operator+(vec const& x, vec const& y) { return element_wise<add<T>>(x, y); }
-//     friend vec& operator+=(vec& x, vec const& y) { return x = element_wise<add<T>>(x, y); }
-//     friend vec operator-(vec const& x, vec const& y) { return element_wise<sub<T>>(x, y); }
-//     friend vec& operator-=(vec& x, vec const& y) { return x = element_wise<sub<T>>(x, y); }
-//     friend vec operator%(vec const& x, vec const& y) { return element_wise<mod<T>>(x, y); }
-//     friend auto operator<(vec const& x, vec const& y) { return element_wise<less<T>>(x, y); }
-//     friend auto operator <=(vec const& x, vec const& y) { return element_wise<less_eq<T>>(x, y); }
-//     friend auto operator>(vec const& x, vec const& y) { return element_wise<greater<T>>(x, y); }
-//     friend auto operator>=(vec const& x, vec const& y) { return element_wise<greater_eq<T>>(x, y); }
-//     friend auto operator==(vec const& x, vec const& y) { return element_wise<equal<T>>(x, y); }
-//     friend auto operator!=(vec const& x, vec const& y) { return element_wise<not_equal<T>>(x, y); }
-
-//     friend vec comp_mul(vec const& x, vec const& y) { return element_wise<mul<T>>(x, y); }
-//     friend vec comp_div(vec const& x, vec const& y) { return element_wise<div<T>>(x, y); }
-    
-//     friend vec operator*(vec const& x, T const& y) { return element_wise<mul<T>>(x, vec(y)); }
-//     template<int M>
-//     friend vec<T, M> operator*(vec const& v, vec<vec<T, M>, N> const& m)
-//     {
-//         return {};
-//     }
-
-//     template<int M>
-//     friend vec operator*(vec<vec, M> const& m, vec const& v)
-//     {
-//         return {};
-//     }
-
-//     friend vec<vec, 2> operator, (vec const& x, vec const& y) { return {x, y}; }
-
-//     template<int M>
-//     friend vec<vec, M+1> operator, (vec<vec, M> const& x, vec const& y) 
-//     { 
-//         vec<vec, M+1> result;
-//         std::copy_n(x.data, M, result.data);
-//         result.data[M] = y;
-//         return result;
-//     }
-
-//     template<class U> requires (!std::is_convertible_v<U, T>)
-//     friend void operator, (vec x, U y) = delete;
-
-//     template<class U> requires (!std::is_convertible_v<U, T>)
-//     friend void operator, (U, vec) = delete;
-
-//     template<int M>
-//     friend vec<vec, M+1> operator, (vec const& x, vec<vec, M> const& y) 
-//     { 
-//         vec<vec, M+1> result;
-//         result.data[0] = x;
-//         std::copy_n(y.data, M, result.data + 1);
-//         return result; 
-//     }
-
-//     friend std::ostream& operator<<(std::ostream& os, vec const& v)
-//     {
-//         os << '[' << v.data[0];
-//         for (int i = 1; i < N; ++i)
-//             os << ", " << v.data[i];
-//         return os << ']';
-//     }
-
-//     T const& operator[](int i) const { return data[i]; }
-//     T& operator[](int i) { return data[i]; }
-// };
-
-// template <class T, int R, int N, int C>
-// vec<vec<T, C>, R> operator*(vec<vec<T, N>, R> const &x, vec<vec<T, C>, N> const &y)
-// {
-//     vec<vec<T, C>, R> result;
-//     for (int r = 0; r < R; ++r)
-//         for (int c = 0; c < C; ++c)
-//             for (int n = 0; n < N; ++n)
-//                 result[r][c] += x[r][n] * y[n][c];
-//     return result;
-// }
+template<class T, int N>
+struct polynomial;
 
 template<class T, int R, int C>
 struct mat;
 
 template<class T, int N>
-using col_vec = std::conditional_t<1 == N, T, mat<T, N, 1>>;
+using col_vec = mat<T, N, 1>;
 
 template<class T, int N>
-using row_vec = std::conditional_t<1 == N, T, mat<T, 1, N>>;
+using row_vec = mat<T, 1, N>;
+
+template<class T, int N>
+using col_vec_t = std::conditional_t<1 == N, T, col_vec<T, N>>;
+
+template<class T, int N>
+using row_vec_t = std::conditional_t<1 == N, T, row_vec<T, N>>;
 
 template<class T, int R, int C>
 using mat_t = std::conditional_t<1 == R && 1 == C, T, mat<T, R, C>>;
@@ -180,20 +32,16 @@ using mat_t = std::conditional_t<1 == R && 1 == C, T, mat<T, R, C>>;
 template<class T, int R, int C>
 struct mat
 {
-    static constexpr bool is_scalar = 1 == R && 1 == C;
-    static constexpr bool is_vector = !is_scalar && (1 == R || 1 == C);
-    static constexpr bool is_matrix = !is_scalar && !is_vector;
-    static constexpr bool is_square = is_matrix && (R == C);
+    ER_STATIC_CONSTEXPR bool is_scalar = 1 == R && 1 == C;
+    ER_STATIC_CONSTEXPR bool is_vector = !is_scalar && (1 == R || 1 == C);
+    ER_STATIC_CONSTEXPR bool is_matrix = !is_scalar && !is_vector;
+    ER_STATIC_CONSTEXPR bool is_square = is_matrix && (R == C);
+    ER_STATIC_CONSTEXPR int vector_dim = is_vector ? (R + C - 1) : 0;
+    ER_STATIC_CONSTEXPR int array_sz = is_matrix ? R : is_vector ? vector_dim : 0;
 
-    static constexpr int vector_dim = is_vector ? (R + C - 1) : 0;
-
-    using Row_t = row_vec<T, C>;
-    using Col_t = col_vec<T, R>;
-
-    using Data_t =
-        std::conditional_t<1 == C && 1 == R, T,
-        std::conditional_t<1 == R, Col_t[C], Row_t[R]>>;
-
+    using Row_t = row_vec_t<T, C>;
+    using Col_t = col_vec_t<T, R>;
+    using Data_t = std::conditional_t<1 == C && 1 == R, T, std::conditional_t<1 == R, Col_t[C], Row_t[R]>>;
     using Data_t = std::conditional_t<1 != R, Row_t[R], std::conditional_t<1 != C, Col_t[C], T>>;
 
     union
@@ -261,8 +109,11 @@ struct mat
     auto& operator()(int i, int j) { return at(i, j); }
     auto const& operator()(int i, int j) const { return const_cast<mat*>(this)->at(i, j); }
 
-    auto& operator[](int i) requires( !is_scalar ){ return data[i]; }
-    auto const& operator[](int i) const requires(!is_scalar) { return data[i]; }
+    auto& operator[](int i) requires( !is_scalar ){ assert(i < array_sz); return data[i]; }
+    auto const& operator[](int i) const requires(!is_scalar) { assert(i < array_sz); return data[i]; }
+
+    auto& operator[](int i) requires(is_scalar) { assert(i == 0); return data; }
+    auto const& operator[](int i) const requires(is_scalar) { assert(i == 0); return data; }
 
     template<int M>
     friend mat_t<T, R, M> operator*(mat const& x, mat<T, C, M> const& y)
@@ -383,12 +234,17 @@ struct mat
 			return os << m.data;
         else
         {
+            if(is_matrix) os << "[";
             for (int i = 0; i < R; ++i)
             {
 				os << '[';
 				for (int j = 0; j < C; ++j)
 					os << m(i, j) << (j + 1 == C ? "]\n" : ", ");
+                if (is_matrix && i != R - 1)
+                    os << ',';
 			}
+
+            if(is_matrix) os << "]\n";
 			return os;
 		}
 	}
@@ -474,27 +330,14 @@ struct mat
         }
     }
 
-    friend mat inverse(mat const& m_) requires (is_scalar)
+    friend mat inverse(mat const& m) requires (is_scalar)
     {
-        return T(1) / m_;
+        return T(1) / m;
     }
 
-    // friend mat inverse(mat const& m_) requires (is_square)
-    // {
-    //     T det = determinant(m_);
-    //     if (det == T(0))
-    //         return {};
-    //     mat result;
-    //     for (int i = 0; i < R; ++i)
-    //         for (int j = 0; j < C; ++j)
-    //             result(i, j) = ((i + j) % 2 ? -1 : 1) * determinant(sub_matrix(m_, i, j)) / det;
-    //     return transpose(result);
-    // }
-
-    friend mat inverse(mat const& m_) requires (is_square)
+    friend mat inverse(mat m) requires (is_square)
     {
         mat augmented = identity();
-        mat m = m_;
 
         for (int i = 0; i < R; ++i)
         {
@@ -536,52 +379,75 @@ struct mat
     friend mat<T, K, K> minor(mat const& m, row_vec<int, K> const& select) requires(is_square)
     {
         mat<T, K, K> result;
-		for (int i = 0; i < K; ++i)
-			for (int j = 0; j < K; ++j)
-				result(i, j) = m(select[i], select[j]);
-		return result;
+        for (int i = 0; i < K; ++i)
+            for (int j = 0; j < K; ++j)
+                result(i, j) = m(select[i], select[j]);
+        return result;
+    }
+
+    template<int I, int S = 0> requires (I >= 0 && S >= 0 && S + I <= R)
+    static T sum_of_determinants_of_principal_minors_permute(mat const& m, auto& c) requires(is_square)
+    {
+        if constexpr (I == 0)
+        {
+            return determinant(minor(m, c));
+        }
+        else if constexpr (S == R)
+        {
+            abort();
+            return T(0);
+        }
+        else
+        {
+            c[I - 1] = S;
+            T result = sum_of_determinants_of_principal_minors_permute<I - 1, S + 1>(m, c);
+            if constexpr (S + I < R)
+                result += sum_of_determinants_of_principal_minors_permute<I, S + 1>(m, c);
+            return result;
+        }
     }
 
     template<int K>
     friend T sum_of_determinants_of_principal_minors(mat const& m) requires(is_square)
     {
-        if constexpr (0 == K)
+        if constexpr (R == K)
+            return determinant(m);
+        else if constexpr (0 == K)
             return T(1);
-        else if constexpr (1 == K)
-        {
-            return fold_add(trace(m));
-        }
         else
         {
-            T result = T(0);
-            for (int i = 0; i < binomial_coefficient<R, K>(); ++i)
-            {
-                row_vec<int, K> select;
-                for (int j = 0; j < K; ++j)
-                    select[j] = (i + j) % R;
-				result += determinant(minor<K>(m, select));
-			}
-            return result;
+            row_vec<int, K> select;
+            return sum_of_determinants_of_principal_minors_permute<K>(m, select);
         }
     }
 
+    template<int N>
+    friend void collect_sum_of_determinants_of_principal_minors(mat const& m, row_vec<T, R + 1>& out) requires(is_square)
+    {
+        assert(N >= 0 && N <= R);
+        out[N] = ((R+N)&1?-1:1)*sum_of_determinants_of_principal_minors<R-N>(m);
+        if constexpr (N > 0)
+            collect_sum_of_determinants_of_principal_minors<N - 1>(m, out);
+	}
+
+    friend polynomial<T, R> characteristic_polynomial(mat const& m) requires(is_square)
+    {
+		row_vec<T, R+1> result;
+        collect_sum_of_determinants_of_principal_minors<R>(m, result);
+		return polynomial<T, R>(result);
+	}
 
     template<int N>
-    friend void collect_sum_of_determinants_of_principal_minors(mat const& m, row_vec<T, R>& out) requires(is_square)
+    friend mat<T, R, C+N> left_fill(mat const& m) requires(is_matrix)
     {
-        assert(N <= R);
-        out[N] = sum_of_determinants_of_principal_minors<N + 1>(m);
+        return (mat<T, R, N>(), m);
+    }
 
-        if constexpr (N + 1 < R)
-            collect_sum_of_determinants_of_principal_minors<N + 1>(m, out);
-	}
-
-    friend row_vec<T, R> characteristic_polynomial(mat const& m) requires(is_square)
+    template<int N>
+    friend mat<T, R, C+N> right_fill(mat const& m) requires(is_matrix)
     {
-		row_vec<T, R> result;
-        collect_sum_of_determinants_of_principal_minors<0>(m, result);
-		return result;
-	}
+        return (m, mat<T, R, N>());
+    }
 };
 
 
