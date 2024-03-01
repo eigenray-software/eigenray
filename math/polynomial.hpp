@@ -165,28 +165,27 @@ struct polynomial
         
         T init = x;
 
-
         T grad = d(x);
         T res = p(x);
         int it = 0;
 
         while ((it++ < C) && abs(res) >= T(128)*std::numeric_limits<T>::epsilon())
         {
-            x -= 0.5 * res / grad;
+            if(abs(res/grad) == 0.f) 
+                break;
+            x -= res / grad;
             res = p(x);
             grad = d(x);
 
             if (-1 == dir && x > init)
             {
-                init -= 1024*std::numeric_limits<T>::epsilon();
+                init -= abs(init) / 1024;
                 x = init;
-                it = 0;
             }
             if (1 == dir && x < init)
             {
-                init += 1024 * std::numeric_limits<T>::epsilon();
+                init += abs(init) / 1024;
                 x = init;
-                it = 0;
             }
         }
 
@@ -196,7 +195,6 @@ struct polynomial
             (!std::isnan(res) && !std::isnan(x) && !std::isnan(grad) &&
              !std::isinf(res) && !std::isinf(x) && !std::isinf(grad));
     }
-
 
     friend std::vector<T> solve_roots(polynomial const& p)
     {
@@ -210,6 +208,11 @@ struct polynomial
         {
             auto d = derivative(p);
             auto d_roots = solve_roots(d);
+            if (false)
+            {
+                std::cout << p << "\n";
+                std::cout << d << "\n";
+            }
             // if derivative has no roots, then the polynomial is always increasing or decreasing
             // and has at most one root
             if (d_roots.empty())
@@ -221,28 +224,6 @@ struct polynomial
             // or polynomial has a double root at the root of the derivative
             else
             {
-                {
-                    T r0, r1;
-                    bool l = conditional_newton_rhapson<100>(p, -1, d_roots[0], r0);
-                    bool r = conditional_newton_rhapson<100>(p, +1, d_roots.back(), r1);
-
-                    if (1 == d_roots.size() && l && r && (r0 - r1) > 0.0000001)
-                    {
-                        roots.push_back(r0);
-                    }
-                    else
-                    {
-                        if (r0 > r1)
-                        {
-                            std::cout << p << "\n";
-                            std::string abc = "123";
-                        }
-                        if (l)
-                            roots.push_back(r0);
-                        if (r)
-                            roots.push_back(r1);
-                    }
-                }
                 T left = d_roots[0];
 				T right;
                 for (int i = 1; i < d_roots.size(); i++)
@@ -256,6 +237,30 @@ struct polynomial
                     }
 					left = right;
 				}
+
+                {
+ 
+                    T r0, r1;
+                    bool l = conditional_newton_rhapson<100>(p, -1, d_roots[0], r0);
+                    bool r = conditional_newton_rhapson<100>(p, +1, d_roots.back(), r1);
+
+                    if (1 == d_roots.size() && l && r && (r0 - r1) > 0.0000001)
+                    {
+                        roots.push_back(r0);
+                    }
+                    else
+                    {
+                        if (r && l && (r0 > r1))
+                        {
+                            std::cout << p << "\n";
+                            std::string abc = "123";
+                        }
+                        if (l)
+                            roots.emplace(roots.begin(), r0);
+                        if (r)
+                            roots.push_back(r1);
+                    }
+                }
 			}
         }
         

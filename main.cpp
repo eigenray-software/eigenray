@@ -16,15 +16,18 @@
 #include <complex.hpp>
 #include <polynomial.hpp>
 #include <iomanip>
+#include <rational.hpp>
+#include <num.hpp>
 
 
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_real_distribution<> dis(-1, 1);
+std::uniform_real_distribution<> dis12(1, 2);
+std::uniform_real_distribution<> dis01(0, 1);
+std::uniform_int_distribution<i64> dis_int(INT_MIN, INT_MAX);
 
 using namespace er;
-
-
 
 std::vector<u8> read_binary(std::string const& file)
 {
@@ -163,7 +166,9 @@ mat<f32, N, N> iterative_convergent_inverse(mat<f32, N, N> m)
 }
 
 template<class T, int R, int C>
-polynomial<T, R + 2 * C> generate_poly()
+polynomial<T, R + 2 * C> generate_poly(
+    std::vector<T>& out_real_roots, 
+    std::vector<complex<T>>& out_complex_roots)
 {
     if constexpr (R == 0 && C == 0)
     {
@@ -174,22 +179,80 @@ polynomial<T, R + 2 * C> generate_poly()
 		f32 a = dis(gen);
         f32 b = (dis(gen) * 0.25f + 0.5f);
 		auto p = polynomial<f32, 2>{ a * a + b * b, -2 * a, 1 };
-		return p * generate_poly<T, R, C - 1>();
+        out_complex_roots.push_back({a, +b});
+        out_complex_roots.push_back({a, -b});
+		return p * generate_poly<T, R, C - 1>(out_real_roots, out_complex_roots);
 	}
 	else if constexpr (C == 0)
 	{
-		return polynomial<T, 1>{-dis(gen), 1} *generate_poly<T, R - 1, C>();
+        T root = sign(dis(gen)) * dis12(gen) * 0.5;
+        out_real_roots.push_back(root);
+		return polynomial<T, 1>{-root, 1} * generate_poly<T, R - 1, C>(out_real_roots, out_complex_roots);
     }
     else
     {
-        return generate_poly<T, R, 0>() * generate_poly<T, 0, C>();
+        return generate_poly<T, R, 0>(out_real_roots, out_complex_roots) * generate_poly<T, 0, C>(out_real_roots, out_complex_roots);
     }
 }
+
+#include <immintrin.h>
 
 int main()
 {
     srand(time(0));
+    auto a = num(-1);
+    auto b = -a;
+    std::cout << b << "\n";
+    std::cout << gcd(num(2*3*5*7*11* 57386), num(2 * 3 * 5 * 7 * 11 * 57387)) << "\n";
 
+    std::cout << rational(sqrt(2.f)) << "\n";
+    std::cout << (sqrt(2.f)) << "\n";
+
+    return 1;
+    //num a = 0xff * 0xff * 0xff;
+    //num b = a + a;
+    //num c = -a;
+
+    //std::hex(std::cout);
+    //std::cout << (a+-b) << "\n";
+    //std::cout << (2*(0xff * 0xff * 0xff) - (0xff * 0xff * 0xff)) << "\n";
+    //std::cout << num(((0xff * 0xff * 0xff) - 2*(0xff * 0xff * 0xff))) << "\n";
+    size_t i = 0;
+
+    //std::cout << -0b11011001010000100110100011111111ull << "\n";
+    //return 1;
+
+    auto opc = "%";
+
+    auto op = [](auto const& a, auto const& b)
+    {
+        return a % b;
+    };
+
+    while (1)
+    {
+        i64 a = dis_int(gen);
+        i64 b = dis_int(gen);
+        i64 c = op(a,b);
+        num x = a;
+        num y = b;
+        num z = op(x, y);
+        if(z != c)
+		{
+            std::cout << a << " " << opc << " " << b << " = " << c << "\n";
+            std::hex(std::cout);
+            std::cout << c << "\n";
+            std::cout << u64(z.extension) << "\n";
+            std::cout << u64(num(c).extension) << "\n";
+			std::cout << "Error: " << x << " " << opc << " " << y << " = " << (z) << " != " << num(c) << "\n";
+			break;
+		}
+
+        if(++i % 10000 == 0)
+		{
+			std::cout << num(i) << "\n";
+		}
+    }
     // std::cout << binomial_coefficient<10, 5>() << "\n";
     // std::cout << binomial_coefficient<11, 7>() << "\n";
     // return 1;
@@ -208,6 +271,7 @@ int main()
     size_t root_counter = 0;
 
 
+    return 1;
     while (1)
     {
         //f32 a = dis(gen);
@@ -217,7 +281,18 @@ int main()
         //if (p(c) != 0.f)
         //    continue;
 
-        auto p = generate_poly<f32, 2, 1>();
+        static constexpr int R = 5;
+        std::vector<f32> gen_real_roots;
+        std::vector<complex<f32>> gen_complex_roots;
+        auto p = generate_poly<f32, R, 1>(gen_real_roots, gen_complex_roots);
+
+        for (auto& r : gen_real_roots)
+        {
+            if(p(r) != 0.f)
+			{
+				continue;
+			}
+        }
         //auto m = random_invertbile_matrix<5>();
         //auto p = characteristic_polynomial(m);
 
@@ -228,8 +303,15 @@ int main()
             std::cout << "Still counting " << (counter/r) << "\n";
         }
 
+        std::sort(gen_real_roots.begin(), gen_real_roots.end());
         auto roots = solve_roots(p);
- 
+        
+        if (roots.size() != R)
+        {
+
+            std::string abc = "!23";
+        }
+        continue;
         if (!roots.empty())
         {
             std::cout << p << "\n";
